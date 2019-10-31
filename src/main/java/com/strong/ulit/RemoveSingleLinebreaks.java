@@ -28,14 +28,6 @@ abstract class RemoveSingleLinebreaks {
   @PositionalParameter(position = 2)
   abstract Optional<Path> output();
 
-  static class CharsetMapper implements Supplier<Function<String, Charset>> {
-
-    @Override
-    public Function<String, Charset> get() {
-      return Charset::forName;
-    }
-  }
-
   static void run(RemoveSingleLinebreaks args) throws IOException {
     Path output = args.output().orElse(args.input().resolveSibling(args.input().getFileName() + "_output.txt"));
     output.toFile().delete();
@@ -49,9 +41,25 @@ abstract class RemoveSingleLinebreaks {
           out.println("");
           sb = new StringBuilder();
         } else {
-          sb.append(line).append(" ");
+          if (line.startsWith(" ") || line.startsWith("\t")) {
+            if (sb.length() >= 1) {
+              out.println(sb);
+            }
+            out.println(line);
+            sb = new StringBuilder();
+          } else {
+            sb.append(line).append(" ");
+          }
         }
       }
+    }
+  }
+
+  static class CharsetMapper implements Supplier<Function<String, Charset>> {
+
+    @Override
+    public Function<String, Charset> get() {
+      return Charset::forName;
     }
   }
 }
